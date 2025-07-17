@@ -3,6 +3,7 @@ const { BadRequestError, UnauthenticatedError } = require("../errors");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const ExcelJS = require("exceljs");
 
 const register = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -11,7 +12,7 @@ const register = async (req, res) => {
     throw new BadRequestError("Please provide name, email and password");
   }
 
-  const validRoles = ["superadmin", "admin", "agent"];
+  const validRoles = ["superadmin", "admin", "agent", "qa-agent"];
   if (role && !validRoles.includes(role)) {
     throw new BadRequestError("Invalid role provided");
   }
@@ -33,6 +34,8 @@ const register = async (req, res) => {
       if (superAdminExists) {
         throw new Error("Superadmin already exists");
       }
+    } else if (role === "qa-agent") {
+      req.body.role = "qa-agent";
     } else if (role === "admin") {
       throw new Error("Admins can only created by superadmins");
     } else {
@@ -59,9 +62,10 @@ const login = async (req, res) => {
   if (!email || !password) {
     throw new BadRequestError("Please provide email and password");
   }
-
+  const users = await User.find();
   const user = await User.findOne({ email });
 
+  console.log("🚀 ~ login ~ user:", user, email);
   if (!user) {
     throw new UnauthenticatedError("Invalid Credentials");
   }
@@ -184,9 +188,9 @@ const getAdmins = async (req, res) => {
   res.status(StatusCodes.OK).json({ admins, count: admins.length });
 };
 const getAgents = async (req, res) => {
-  if (!["superadmin", "admin"].includes(req.user.role)) {
-    throw new Error("Only superadmins and admins can view agents");
-  }
+  // if (!["superadmin", "admin"].includes(req.user.role)) {
+  //   throw new Error("Only superadmins and admins can view agents");
+  // }
 
   const agents = await User.find({ role: "agent" }).select(
     "name email role createdAt isActive"
@@ -253,6 +257,87 @@ const toggleAgentActive = async (req, res) => {
     },
   });
 };
+function generateEmail(name) {
+  // Utility to generate email/passwordfunction generateEmail(name) {
+  const slug = name.toLowerCase().replace(/\s+/g, "");
+  return `${slug}@intertech.com`;
+}
+
+function generatePassword(name) {
+  return name.toLowerCase().replace(/\s+/g, "") + "123";
+}
+
+const bulkCreateUsers = async (req, res) => {
+  const { names, role } = req.body;
+
+  if (!Array.isArray(names) || names.length === 0 || !role) {
+    return res.status(400).json({ error: "Names array and role are required" });
+  }
+
+  try {
+    const results = [];
+
+    for (const name of names) {
+      const email = generateEmail(name);
+      const existingUser = await User.findOne({ email });
+
+      if (existingUser) {
+        results.push({
+          name: existingUser.name,
+          email: existingUser.email,
+          role: existingUser.role,
+          password: "Already Exists",
+          createdAt: existingUser.createdAt,
+        });
+      } else {
+        const plainPassword = generatePassword(name);
+
+        const newUser = await User.create({
+          name,
+          email,
+          password: plainPassword,
+          role,
+          createdBy: req.user?.userId,
+        });
+
+        results.push({
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          password: plainPassword,
+          createdAt: newUser.createdAt,
+        });
+      }
+    }
+
+    // Create Excel workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("User List");
+
+    worksheet.columns = [
+      { header: "Name", key: "name" },
+      { header: "Email", key: "email" },
+      { header: "Role", key: "role" },
+      { header: "Password", key: "password" },
+      { header: "Created At", key: "createdAt" },
+    ];
+
+    worksheet.addRows(results);
+
+    // Set headers and stream Excel file
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=users.xlsx");
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("Error in bulk-create:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
 module.exports = {
   register,
@@ -263,4 +348,5 @@ module.exports = {
   getAgents,
   toggleAgentActive,
   getAgentById,
+  bulkCreateUsers,
 };

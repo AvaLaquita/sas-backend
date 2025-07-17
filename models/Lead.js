@@ -63,5 +63,13 @@ const LeadSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+// 👇 Add this virtual field
+LeadSchema.virtual("history", {
+  ref: "SaleHistory",
+  localField: "_id",
+  foreignField: "lead", // should match the name in SaleHistory
+});
 
+LeadSchema.set("toObject", { virtuals: true });
+LeadSchema.set("toJSON", { virtuals: true });
 module.exports = mongoose.model("Lead", LeadSchema);

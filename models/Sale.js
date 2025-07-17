@@ -118,4 +118,13 @@ const SaleSchema = new mongoose.Schema({
   },
 });
 
+// 👇 Add this virtual field
+SaleSchema.virtual("history", {
+  ref: "SaleHistory",
+  localField: "_id",
+  foreignField: "sale", // should match the name in SaleHistory
+});
+
+SaleSchema.set("toObject", { virtuals: true });
+SaleSchema.set("toJSON", { virtuals: true });
 module.exports = mongoose.model("Sale", SaleSchema);

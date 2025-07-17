@@ -9,6 +9,7 @@ const {
   resetPassword,
   toggleAgentActive,
   getAgentById,
+  bulkCreateUsers,
 } = require("../controllers/auth");
 const authenticateUser = require("../middleware/authentication");
 const {
@@ -26,7 +27,7 @@ router.post("/register", authenticateUser, register);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.get("/admins", authenticateUser, getAdmins);
-router.get("/agents", authenticateUser, getAgents);
+router.get("/agents", getAgents);
 router.patch("/agents/:id/toggle-active", authenticateUser, toggleAgentActive);
 router.get("/agents/:id", authenticateUser, getAgentById);
 router.get("/dashboard-stats", authenticateUser, getDashboardStats);
@@ -37,5 +38,6 @@ router.get(
 );
 router.get("/graph-stats", authenticateUser, graphDataStats);
 router.get("/recent-sales", authenticateUser, recentSales);
+router.post("/bulk-create-users", bulkCreateUsers);
 
 module.exports = router;

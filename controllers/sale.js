@@ -37,7 +37,7 @@ const getSales = async (req, res) => {
   if (!user || !user.userId) {
     throw new UnauthenticatedError("User not authenticated");
   }
-  if (!["admin", "superadmin"].includes(user.role)) {
+  if (!["admin", "superadmin", "qa-agent"].includes(user.role)) {
     throw new UnauthenticatedError(
       "Only admins and superadmins can view sales data"
     );
@@ -84,6 +84,7 @@ const getSales = async (req, res) => {
 
   const sales = await Sale.find(query)
     .populate("agent", "name")
+    .populate("history") // Populate virtual field "history"
     .select(
       "customerName primaryPhone campaignType confirmationNumber planName address email activationFee paymentMode bankName chequeOrCardNumber cvv expiryDate merchantName checkingAccountNumber routingNumber alternativePhone dateOfSale"
     );

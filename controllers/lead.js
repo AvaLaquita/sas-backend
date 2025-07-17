@@ -26,12 +26,13 @@ const createLead = async (req, res) => {
 
 const getLeads = async (req, res) => {
   const { user } = req;
-  if (!["admin", "superadmin"].includes(user.role)) {
+  if (!["admin", "superadmin", "qa-agent"].includes(user.role)) {
     throw new Error("Only admins and superadmins can view leads");
   }
 
   const leads = await Lead.find({})
     .populate("agent", "name email")
+    .populate("history") // <- This loads the SaleHistory linked via the virtual
     .sort("-createdAt");
   res.status(StatusCodes.OK).json({ leads, count: leads.length });
 };

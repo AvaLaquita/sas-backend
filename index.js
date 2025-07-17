@@ -17,6 +17,7 @@ const authRouter = require("./routes/auth");
 const saleRouter = require("./routes/sale");
 const autoSaleRouter = require("./routes/auto-sale");
 const leadRouter = require("./routes/lead");
+const saleHistoryRouter = require("./routes/sale-history");
 
 // error handler
 const notFoundMiddleware = require("./middleware/not-found");
@@ -38,20 +39,21 @@ const allowedOrigins = [
 ];
 
 app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., Postman, curl)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: false, // Set to true if using cookies
-  })
+  cors()
+  // cors({
+  //   origin: (origin, callback) => {
+  //     // Allow requests with no origin (e.g., Postman, curl)
+  //     if (!origin) return callback(null, true);
+  //     if (allowedOrigins.includes(origin)) {
+  //       callback(null, true);
+  //     } else {
+  //       callback(new Error("Not allowed by CORS"));
+  //     }
+  //   },
+  //   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  //   allowedHeaders: ["Content-Type", "Authorization"],
+  //   credentials: false, // Set to true if using cookies
+  // })
 );
 // app.use(xss());
 
@@ -60,6 +62,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/sales", saleRouter);
 app.use("/api/v1/leads", leadRouter);
 app.use("/api/v1/auto-sales", autoSaleRouter);
+app.use("/api/v1/sale-history", saleHistoryRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
