@@ -116,5 +116,13 @@ const AutoSaleSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+// 👇 Add this virtual field
+AutoSaleSchema.virtual("history", {
+  ref: "SaleHistory",
+  localField: "_id",
+  foreignField: "autoSale", // should match the name in SaleHistory
+});
 
+AutoSaleSchema.set("toObject", { virtuals: true });
+AutoSaleSchema.set("toJSON", { virtuals: true });
 module.exports = mongoose.model("AutoSale", AutoSaleSchema);

@@ -43,6 +43,11 @@ const saleHistorySchema = new mongoose.Schema({
   // Optional sale or lead reference
   sale: { type: mongoose.Schema.Types.ObjectId, ref: "Sale", required: false },
   lead: { type: mongoose.Schema.Types.ObjectId, ref: "Lead", required: false },
+  autoSale: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "AutoSale",
+    required: false,
+  },
   status: { type: String, default: "pending" },
   history: [historySchema],
   comments: [commentSchema],

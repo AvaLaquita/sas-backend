@@ -9,7 +9,7 @@ exports.getSaleHistory = async (req, res) => {
     throw new UnauthenticatedError("Id is required!");
   }
   const response = await SaleHistory.find({
-    $or: [{ sale: id }, { lead: id }],
+    $or: [{ sale: id }, { lead: id }, { autoSale: id }],
   });
   if (!response) throw new UnauthenticatedError("Sale History not found!");
   return res.status(StatusCodes.OK).json({ history: response });
@@ -83,6 +83,12 @@ const fullSaleHistorySchema = Joi.object({
     .messages({
       "string.pattern.base": "Sale ID must be a valid MongoDB ObjectId",
     }),
+  autoSale: Joi.string()
+    .regex(/^[0-9a-fA-F]{24}$/)
+    .optional()
+    .messages({
+      "string.pattern.base": "Sale ID must be a valid MongoDB ObjectId",
+    }),
   lead: Joi.string()
     .regex(/^[0-9a-fA-F]{24}$/)
     .optional()
@@ -104,10 +110,10 @@ const fullSaleHistorySchema = Joi.object({
             "escalated"
           )
           .required(),
-        reason: Joi.string().optional(),
+        reason: Joi.string().allow("").optional(),
         rejectionReason: Joi.string().allow("").optional(),
-        notes: Joi.string().optional(),
-        nextAction: Joi.string().optional(),
+        notes: Joi.string().allow("").optional(),
+        nextAction: Joi.string().allow("").optional(),
         qualityScore: Joi.number().min(0).max(10).optional(),
         systemData: Joi.object({
           browser: Joi.string().optional(),
@@ -136,16 +142,23 @@ exports.createSaleHistoryWithDetails = async (req, res) => {
     const details = error.details.map((d) => d.message).join(", ");
     throw new UnauthenticatedError(`Validation Error: ${details}`);
   }
-  const { lead, sale, identifier, history = [], comments = [] } = req.body;
+  const {
+    autoSale,
+    lead,
+    sale,
+    identifier,
+    history = [],
+    comments = [],
+  } = req.body;
   const { user } = req;
 
   // Check if already exists
-  let existing = await SaleHistory.findOne({ sale });
-  if (existing) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Sale history already exists for this sale" });
-  }
+  // let existing = await SaleHistory.findOne({ sale });
+  // if (existing) {
+  //   return res
+  //     .status(StatusCodes.BAD_REQUEST)
+  //     .json({ msg: "Sale history already exists for this sale" });
+  // }
 
   // Attach user + metadata to each history/comment item
   const buildActionBy = () => ({
@@ -175,6 +188,7 @@ exports.createSaleHistoryWithDetails = async (req, res) => {
     identifier: identifier || `SALE-${Date.now()}`,
     sale: sale,
     lead: lead,
+    autoSale: autoSale,
     status: history[history.length - 1]?.status || "pending",
     history: enrichHistory,
     comments: enrichComments,

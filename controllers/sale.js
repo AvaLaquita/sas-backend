@@ -84,11 +84,15 @@ const getSales = async (req, res) => {
 
   const sales = await Sale.find(query)
     .populate("agent", "name")
-    .populate("history") // Populate virtual field "history"
+    .populate({
+      path: "history",
+      sort: { createdAt: -1 },
+    }) // Populate virtual field "history"
     .select(
       "customerName primaryPhone campaignType confirmationNumber planName address email activationFee paymentMode bankName chequeOrCardNumber cvv expiryDate merchantName checkingAccountNumber routingNumber alternativePhone dateOfSale"
     );
 
+  console.log("🚀 ~ getSales ~ sales:", sales?.[0]);
   res.status(StatusCodes.OK).json({ sales, count: sales.length });
 };
 

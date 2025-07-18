@@ -32,6 +32,7 @@ const getAutoSales = async (req, res) => {
 
   const sales = await AutoSale.find({})
     .populate("agent", "name email")
+    .populate("history")
     .sort("-createdAt");
   res.status(StatusCodes.OK).json({ sales, count: sales.length });
 };
