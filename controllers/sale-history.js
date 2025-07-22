@@ -111,10 +111,17 @@ const fullSaleHistorySchema = Joi.object({
           )
           .required(),
         reason: Joi.string().allow("").optional(),
-        rejectionReason: Joi.string().allow("").optional(),
+        rejectionReason: Joi.string().when("status", {
+          is: "rejected",
+          then: Joi.string().min(3).required().messages({
+            "any.required":
+              "Rejection reason is required when status is rejected",
+          }),
+          otherwise: Joi.string().allow("").optional(),
+        }),
         notes: Joi.string().allow("").optional(),
         nextAction: Joi.string().allow("").optional(),
-        qualityScore: Joi.number().min(0).max(10).optional(),
+        qualityScore: Joi.number().min(0).max(10).required(),
         systemData: Joi.object({
           browser: Joi.string().optional(),
           device: Joi.string().optional(),
