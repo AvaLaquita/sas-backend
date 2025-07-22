@@ -106,7 +106,7 @@ const fullSaleHistorySchema = Joi.object({
             "under_review",
             "approved",
             "rejected",
-            "requires_revision",
+            "red_flag",
             "escalated"
           )
           .required(),
