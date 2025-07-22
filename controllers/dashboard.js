@@ -5,7 +5,9 @@ const AutoSale = require("../models/AutoSale");
 const User = require("../models/User");
 
 const getDashboardStats = async (req, res) => {
-  if (!["superadmin", "admin", "qa-agent"].includes(req.user.role)) {
+  if (
+    !["superadmin", "admin", "qa-agent", "qa-manager"].includes(req.user.role)
+  ) {
     throw new UnauthorizedError(
       "Only superadmins and admins can view dashboard stats"
     );

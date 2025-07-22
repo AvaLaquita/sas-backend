@@ -26,7 +26,7 @@ const createAutoSale = async (req, res) => {
 
 const getAutoSales = async (req, res) => {
   const { user } = req;
-  if (!["admin", "superadmin", "qa-agent"].includes(user.role)) {
+  if (!["admin", "superadmin", "qa-agent", "qa-manager"].includes(user.role)) {
     throw new Error("Only admins and superadmins can view sales");
   }
 

@@ -37,7 +37,7 @@ const getSales = async (req, res) => {
   if (!user || !user.userId) {
     throw new UnauthenticatedError("User not authenticated");
   }
-  if (!["admin", "superadmin", "qa-agent"].includes(user.role)) {
+  if (!["admin", "superadmin", "qa-agent", "qa-manager"].includes(user.role)) {
     throw new UnauthenticatedError(
       "Only admins and superadmins can view sales data"
     );
